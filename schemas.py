@@ -14,6 +14,10 @@ class UserResponse(BaseModel):
     email: str
     
     class Config:
-        from_atributes = True
+        from_attributes= True
     
+
+class Token (BaseModel):
+    access_token : str
+    token_type: str
 
