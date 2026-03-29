@@ -110,3 +110,25 @@ def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session =
 @app.get ("/perfil/", response_model=schemas.UserResponse)
 def obtener_perfil(usuario_actual: models.User = Depends(get_current_user)):
     return usuario_actual
+
+
+@app.post("/documentos/",response_model=schemas.DocumentResponse, status_code= status.HTTP_201_CREATED)
+
+def crear_resumen(
+    documento: schemas.DocumentCreate,
+    usuario_actual: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    resumen_generado = f"Resumen IA de:{documento.original_text[:20]}..."
+    
+    nuevo_documento = models.Document(
+        original_text = documento.original_text,
+        ai_summary = resumen_generado,
+        owner_id = usuario_actual.id
+    )
+    
+    db.add(nuevo_documento)
+    db.commit()
+    db.refresh(nuevo_documento)
+    
+    return nuevo_documento
