@@ -172,3 +172,23 @@ def listar_mis_documentos(
     return mis_documentos
 
 
+@app.delete("/documentos/{documento_id}", status_code=status.HTTP_204_NO_CONTENT)
+
+def eliminar_documento(
+    documento_id: int,
+    usuario_actual : models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)    
+):
+    documento = db.query(models.Document).filter(
+        models.Document.id == documento_id,
+        models.Document.owner_id == usuario_actual.id
+    ).first()
+    
+    if not documento:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Documento no encontrado o no tienes permiso para eliminarlo.")
+    
+    
+    db.delete(documento)
+    db.commit()
+    
+    return {"mensaje": "Documento eliminado"}
