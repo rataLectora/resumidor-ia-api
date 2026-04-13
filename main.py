@@ -159,3 +159,16 @@ def crear_resumen(
     db.refresh(nuevo_documento)
     
     return nuevo_documento
+
+
+@app.get("/documentos/", response_model=list[schemas.DocumentResponse])
+
+def listar_mis_documentos(
+    usuario_actual: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    mis_documentos = db.query(models.Document).filter(models.Document.owner_id == usuario_actual.id).all()
+    
+    return mis_documentos
+
+
