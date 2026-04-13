@@ -9,7 +9,15 @@ from database import engine, get_db
 from datetime import datetime,timedelta,timezone
 import jwt
 import os
+
+from dotenv import load_dotenv
+from groq import Groq
+
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+
+load_dotenv()
+client_groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
 models.Base.metadata.create_all(bind = engine)
 
 app = FastAPI(
@@ -119,7 +127,26 @@ def crear_resumen(
     usuario_actual: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    resumen_generado = f"Resumen IA de:{documento.original_text[:20]}..."
+    try:
+        chat_completion = client_groq.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Eres un experto resumiendo textos en español. Tu objetivo es extraer las ideas principales y devolver UNICAMENTE el resumen. No agregues introducciones, ni saludos, ni conclusiones extra."
+                },
+                {
+                    "role": "user",
+                    "content": f"Por favor, resume este texto: {documento.original_text}"
+                }
+            ],
+            model = "llama-3.1-8b-instant",
+            max_tokens= 500
+        )
+        resumen_generado = chat_completion.choices[0].message.content
+    
+    except Exception as e:
+        raise HTTPException(status_code= 500 , detail= f"Error en el cerebro de la IA: {str(e)}")
+        
     
     nuevo_documento = models.Document(
         original_text = documento.original_text,
