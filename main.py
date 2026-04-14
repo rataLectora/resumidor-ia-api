@@ -120,7 +120,34 @@ def obtener_perfil(usuario_actual: models.User = Depends(get_current_user)):
     return usuario_actual
 
 
+
+def generar_preguntas_sugeridas (texto:str):
+    try:
+        response = client_groq.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Eres un tutor académico. Tu tarea es leer un texto y sugerir 3 preguntas cortas que inviten a la reflexión sobre ese mismo texto. Devuelve ÚNICAMENTE las preguntas separadas por un salto de línea, sin números, sin viñetas y sin introducciones."
+                },
+                {
+                    "role": "user",
+                    "content": f"Genera 3 preguntas para este contenido: {texto}"
+                }
+            ],
+            model = "llama-3.1-8b-instant",
+            
+        )
+        
+        texto_crudo = response.choices[0].message.content
+        preguntas = [p.strip() for p in texto_crudo.split('\n') if p.strip()]
+        return preguntas
+    except Exception:
+        return []
+
 @app.post("/documentos/",response_model=schemas.DocumentResponse, status_code= status.HTTP_201_CREATED)
+
+
+
 
 def crear_resumen(
     documento: schemas.DocumentCreate,
@@ -143,6 +170,8 @@ def crear_resumen(
             max_tokens= 500
         )
         resumen_generado = chat_completion.choices[0].message.content
+        
+        preguntas_generadas = generar_preguntas_sugeridas(documento.original_text)
     
     except Exception as e:
         raise HTTPException(status_code= 500 , detail= f"Error en el cerebro de la IA: {str(e)}")
@@ -151,6 +180,7 @@ def crear_resumen(
     nuevo_documento = models.Document(
         original_text = documento.original_text,
         ai_summary = resumen_generado,
+        suggested_questions = preguntas_generadas,
         owner_id = usuario_actual.id
     )
     

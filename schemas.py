@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import List,Optional
 
 
 #clase asociaciada a lo que se recibe por parte del cliente 
@@ -31,6 +32,7 @@ class DocumentResponse(BaseModel):
     id: int
     original_text: str
     ai_summary: str
+    suggested_questions: Optional[List[str]] = []
     created_at: datetime
     owner_id : int
     

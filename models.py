@@ -1,7 +1,8 @@
-from sqlalchemy import Column,Integer,String,Text,ForeignKey,DateTime
+from sqlalchemy import Column,Integer,String,Text,ForeignKey,DateTime,JSON
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from database import Base
+
 
 class User(Base):
     __tablename__ = "users"
@@ -23,6 +24,7 @@ class Document(Base):
     id = Column(Integer,primary_key=True,index=True)
     original_text = Column(Text,nullable=False)
     ai_summary = Column(Text,nullable=False)
+    suggested_questions = Column(JSON,default=list)
     created_at = Column(DateTime(timezone=True),server_default= func.now())
     
     #se establece la llave foranea que conecta con el usuario
