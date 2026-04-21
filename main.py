@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 
@@ -14,6 +14,9 @@ from dotenv import load_dotenv
 from groq import Groq
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+
+import fitz
+
 
 load_dotenv()
 client_groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -191,6 +194,19 @@ def crear_resumen(
     return nuevo_documento
 
 
+def extraer_texto_pdf(file_bytes: bytes):
+    try:
+        doc = fitz.open(stream=file_bytes,filetype="pdf")
+        texto_completo = ""
+        for pagina in doc:
+            texto_completo += pagina.get_text()
+        doc.close()
+        return texto_completo.strip()
+    except Exception as e:
+        print (f"Error extrayendo PDF: {e}")
+        return None
+
+
 @app.get("/documentos/", response_model=list[schemas.DocumentResponse])
 
 def listar_mis_documentos(
@@ -222,3 +238,60 @@ def eliminar_documento(
     db.commit()
     
     return {"mensaje": "Documento eliminado"}
+
+@app.post("/documentos/pdf", response_model=schemas.DocumentResponse, status_code=status.HTTP_201_CREATED)
+async def crear_resumen_desde_pdf(
+    file: UploadFile = File(...),
+    usuario_actual : models.User = Depends (get_current_user),
+    db: Session = Depends(get_db)
+):
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400,detail="El archivo tener un formato PDF válido")
+    
+    contenido = await file.read()
+    texto_extraido = extraer_texto_pdf(contenido)
+    
+    if not texto_extraido or len(texto_extraido) < 10:
+        raise HTTPException(status_code= 400, detail= "Nose pudo extrar texto suficiente del PDF. Asegurate de que no sea un PDF como imagen.")
+    
+    
+    try :
+        texto_para_ia = texto_extraido[:8000]
+        
+        chat_completion = client_groq.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Eres un experto resumiendo textos en español. Tu objetivo es extrar las ideas principales y devolver UNICAMENTE el resumen. No agregues introducciones, ni saludos , ni conclusiones extra."
+                },
+                {
+                    "role": "user",
+                    "content":f"Por favor, resume este texto extraído de un PDF: {texto_para_ia}"
+                    
+                }
+            ],
+            
+            model = "llama-3.1-8b-instant",
+            max_tokens=500
+        )
+        resumen_generado = chat_completion.choices[0].message.content
+        
+        preguntas_generadas = generar_preguntas_sugeridas(texto_para_ia)
+    except Exception as e:
+        raise HTTPException(status_code= 500, detail=f"Error en el cerebro de la IA: {str(e)}")
+    
+    
+    nuevo_documento = models.Document(
+        original_text= f"[Documento PDF: {file.filename}]",
+        ai_summary = resumen_generado,
+        suggested_questions = preguntas_generadas,
+        owner_id = usuario_actual.id
+    )
+    
+    db.add(nuevo_documento)
+    db.commit()
+    db.refresh(nuevo_documento)
+    
+    return nuevo_documento
+
+    

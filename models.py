@@ -16,6 +16,8 @@ class User(Base):
     
     documents = relationship("Document",back_populates="owner")
     
+#nota: evaluar si agrego created_at al user y evitar que los registros se afecten
+
     
  
 class Document(Base):
