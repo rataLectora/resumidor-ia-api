@@ -38,3 +38,13 @@ class DocumentResponse(BaseModel):
     
     class Config:
         from_attributes = True
+        
+        
+class QuestionRequest(BaseModel):
+    pregunta: str
+
+
+class ChatResponse(BaseModel):
+    respuesta: str
+    
+

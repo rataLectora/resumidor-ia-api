@@ -282,7 +282,7 @@ async def crear_resumen_desde_pdf(
     
     
     nuevo_documento = models.Document(
-        original_text= f"[Documento PDF: {file.filename}]",
+        original_text= texto_para_ia,
         ai_summary = resumen_generado,
         suggested_questions = preguntas_generadas,
         owner_id = usuario_actual.id
@@ -294,4 +294,48 @@ async def crear_resumen_desde_pdf(
     
     return nuevo_documento
 
+
+@app.post("/documentos/{documento_id}/chat", response_model=schemas.ChatResponse)
+
+def  chatear_con_documento(
+    documento_id : int,
+    request: schemas.QuestionRequest,
+    usuario_actual: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    documento = db.query(models.Document).filter(
+        models.Document.id == documento_id,
+        models.Document.owner_id == usuario_actual.id
+    ).first()
+    
+    
+    if not documento:
+        raise HTTPException(status_code= 404, detail="Documento no encontrado o no tiene el permiso para acceder a él")
+    
+    contexto = documento.original_text
+    pregunta_usuario = request.pregunta
+    
+    try:
+        chat_completion = client_groq.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Eres un asistete estricto y analítico. Responde la pregunta del usuario basándote ÚNICAMENTE en el texto proporcionado a continuación. Si la respuesta no se encuentra en el texto, debes responder exactamente: 'Lo siento, no puedo encontrar esta información en el documento.' No uses conocimientos externos ni inventes datos."
+                },
+                {
+                    "role": "user",
+                    "content": f"TEXTO DEL DOCUMENTO: \n{contexto}\n\nPREGUNTA DEL USUARIO:\n{pregunta_usuario}"
+                }
+            ],
+            model="llama-3.1-8b-instant",
+            max_tokens=500,
+            temperature=0.1
+        )
+        
+        respuesta_ia = chat_completion.choices[0].message.content
+        
+        return {"respuesta": respuesta_ia}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail= f"Error en el cerebro de la IA: {str(e)}")
+    
     
