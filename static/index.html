@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuMind IA - Asistente de Documentos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 font-sans h-screen flex flex-col overflow-hidden">
+
+    <div id="auth-screen" class="flex w-full h-screen">
+
+        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-800 via-blue-600 to-indigo-900 text-white flex-col justify-center px-16 relative overflow-hidden" >
+            <div class="absolute -top-24 -left-24 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-400 opacity-20 rounded-full blur-3xl"></div>
+
+            <div class="relative z-10">
+                <h1 class="text-5xl font-extrabold mb-6 tracking-tight"> Tu cerebro extendido <br>para documentos.</h1>
+                <p class="text-xl text-blue-100 mb-10 font-light leading-relaxed">Sube cualquier PDF, obtén un resumen instantáneo y chatea con la Inteligencia Artificial para extraer respuestas exactas en segundos.</p>
+
+                <div class="space-y-6">
+                     <div class="flex items-center gap-4">
+                         <div class="bg-white/20 p-3 rounded-xl"><i class="fa-solid fa-bolt text-yellow-300 text-xl"></i></div>
+                         <p class="text-lg font-medium">Resúmenes potenciados por Llama 3</p>
+                     </div>
+
+                     <div class="flex items-center gap-4">
+                         <div class="bg-white/20 p-3 rounded-xl"><i class="fa-solid fa-comments text-green-300 text-xl"></i></div>
+                         <p class="text-lg font-medium">Chat interactivo basado en tus datos</p>
+                     </div>
+
+                     <div class="flex items-center gap-4">
+                         <div class="bg-white/20 p-3 rounded-xl"><i class="fa-solid fa-shield-halved text-purple-300 text-xl"></i></div>
+                         <p class="text-lg font-medium">100% libre de alucinaciones</p>
+                     </div>
+                </div> 
+
+            </div>
+        </div>
+    <div class="w-full lg:w-1/2 flex items-center justify-center bg-white p-8 overflow-y-auto">
+            <div class="w-full max-w-md">
+
+                <div id="login-container" class="block transition-opacity duration-300">
+                    
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-100 mb-4 shadow-sm">
+                            <i class="fa-solid fa-robot text-3xl text-blue-600"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800">Bienvenido de nuevo</h2>
+                        <p class="text-gray-500 mt-2">Ingresa a tu cuenta para continuar</p>
+                    </div> 
+
+                    <form id="login-form" class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Correo electrónico</label>
+                            <input type="email" id="login-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="tu@correo.com" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Contraseña</label>
+                            <input type="password" id="login-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="••••••••" required>
+                        </div>
+                        <p id="login-error" class="text-red-500 text-sm hidden font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i>Credenciales incorrectas.</p>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">Entrar</button>
+                    </form>
+                    
+                    <p class="text-center mt-8 text-gray-600">
+                        ¿No tienes una cuenta?
+                        <button onclick="toggleAuth('register')" class="text-blue-600 font-bold hover:underline">Regístrate aquí</button>
+                    </p>
+                    
+                </div> 
+
+                <div id="register-container" class="hidden transition-opacity duration-300">
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-green-100 mb-4 shadow-sm">
+                            <i class="fa-solid fa-user-plus text-3xl text-green-600"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800">Crea tu cuenta</h2>
+                        <p class="text-gray-500 mt-2">Comienza a chatear con tus PDFs</p>
+                    </div>
+
+                    <form id="register-form" class="space-y-5">
+                         <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Correo electrónico</label>
+                        <input type="email" id="reg-email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="tu@correo.com" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Contraseña</label>
+                        <input type="password" id="reg-password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="Mínimo 6 caracteres" required>
+                    </div>
+                    <p id="register-error" class="text-red-500 text-sm hidden font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i>Error al crear la cuenta.</p>
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-green-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">Crear cuenta gratis</button>    
+                    </form>
+
+                    <p class="text-center mt-8 text-gray-600">
+                        ¿Ya tienes una cuenta?
+                        <button onclick="toggleAuth('login')" class="text-blue-600 font-bold hover:underline">Inicia sesión</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="hidden flex-1 flex flex-col h-full max-w-7xl mx-auto w-full p-4">
+        <header class="flex justify-between items-center py-4 border-b border-gray-300 mb-4 bg-white px-6 rounded-lg shadow-sm">
+            <h1 class="text-2xl font-extrabold text-blue-700"><i class="fa-solid fa-brain mr-2"></i>DocuMind IA</h1>
+            <button id="btn-logout" class="text-red-500 hover:text-red-700 font-bold text-sm bg-red-50 px-4 py-2 rounded-lg transition-colors"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>Cerrar Sesión</button>
+        </header>
+
+        <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden">
+            <div class="md:col-span-1 bg-white p-6 rounded-xl shadow-md flex flex-col gap-4 overflow-y-auto border border-gray-100">
+                <h2 class="font-bold text-lg text-gray-800 border-bpb-2"><i class="fa-solid fa-file-pdf text-red-500 mr-2"></i>1. Cargar Documento</h2>
+
+                <input type="file" id="pdf-file" accept="application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border-2 border-dashed border-gray-300 p-2 rounded-xl text-center">
+                <button id="btn-upload" class="bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-md"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Extraer y Resumir</button>
+
+                <h3 class="font-bold text-gray-800 mt-6 border-b pb-2"><i class="fa-solid fa-list-check text-blue-500 mr-2"></i>IA:</h3>
+                <div id="summary-box" class="flex-1 text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-inner">
+                    Sube un documento para ver el resumen ejecutivo aquí...
+                </div>
+            </div>
+
+            <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-md flex flex-col h-full border border-gray-100">
+                <h2 class="font-bold text-lg text-gray-800 border-b pb-2 mb-4"><i class="fa-solid fa-messages text-purple-500 mr-2"></i>2. Chat Interactivo con el documento</h2>
+
+                <div id="chat-box" class="flex-1 overflow-y-auto bg-slate-50 p-6 rounded-xl border border-gray-200 mb-4 flex flex-col gap-4 shadow-inner">
+                    <div class="text-gray-400 text-center text-sm mt-10 italic"><i class="fa-solid fa-inbox text-4xl mb-3 block opacity-50"></i>El chat está vacío. Sube un PDF para comenzar la conversasion.</div>
+                </div>
+
+                <div class="flex gap-3">
+                    <input type="text" id="chat-input" placeholder="Pregunta algo en específico sobre el texto..." class="flex-1 px-5 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm cursor-not-allowed" disabled>
+                    <button id="btn-send" class="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed" disabled><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function toggleAuth(view){
+            const loginForm = document.getElementById("login-container")
+            const registerForm = document.getElementById("register-container")
+
+            if (view === "register"){
+                loginForm.classList.add("hidden")
+                registerForm.classList.remove("hidden")
+            }else{
+                registerForm.classList.add("hidden")
+                loginForm.classList.remove("hidden")
+            }
+
+        }
+    </script>
+</body>
+</html>

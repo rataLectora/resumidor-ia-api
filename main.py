@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 
@@ -18,6 +19,8 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import fitz
 
 
+
+
 load_dotenv()
 client_groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
@@ -28,6 +31,10 @@ app = FastAPI(
     description= "Backend para la gestion y resumen de los textos",
     version= "1.0.0"
 )
+
+#la linea que viene corresponde a funcionalidades asociadas al frontend
+
+app.mount("/web", StaticFiles(directory="static", html=True), name = "static")
 
 pwd_context = CryptContext(schemes=["bcrypt"],deprecated ="auto")
 
